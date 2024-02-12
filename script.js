@@ -1,34 +1,9 @@
-const API_URL = "http://localhost:8080";
+import { auth, addToCart } from './api.js';
+
 const loginPath = "login";
 const registerPath = "create-user";
 
-async function auth(email, password, method) {
-
-  // Create an object with the input values
-  const formData = {
-      username: email,
-      password: password
-  };
-
-  try {
-      // Send a POST request to the server
-      const response = await fetch(`${API_URL}/${method}`, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(formData)
-      });
-
-      const data = await response.json();
-      return data;
-  } catch (error) {
-      console.error('Error:', error);
-      throw error;
-  }
-}
-
-let searchForm; // Declare the variable
+let searchForm;
 searchForm = document.querySelector('.search-form');
 
 
@@ -64,7 +39,6 @@ const buttons = document.querySelectorAll('#btn');
 // Loop through each button and add event listener
 buttons.forEach(button => {
   button.onclick = () => {
-    // Your logic here
     loginFormContainer.classList.toggle('active');
   };
 });
@@ -116,7 +90,6 @@ function fadeOut(){
 
 // Get the form element
 document.getElementById('login-form').addEventListener('submit', async (event) => {
-  // Prevent the default form submission behavior
   event.preventDefault();
   const email = document.querySelector('input[type=email]').value;
   const password = document.querySelector('input[type=password]').value;
@@ -134,9 +107,9 @@ document.getElementById('login-form').addEventListener('submit', async (event) =
     console.error('Error:', error);
   }
 });
+
 // Get the form element
 document.getElementById('register-form').addEventListener('submit', async (event) => {
-  // Prevent the default form submission behavior
   event.preventDefault();
   const email = document.querySelector('input[type=email]').value;
   const password = document.querySelector('input[type=password]').value;

@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const { Pool } = require('pg');
-
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -39,19 +38,33 @@ async function createUsersTable() {
     console.error('Error creating users table:', error);
   }
 }
+// Create books table if it does not exist
+async function createBooksTable() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS books (
+        id SERIAL PRIMARY KEY,
+        user_id INT REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        imageUrl VARCHAR(255) NOT NULL,
+        price NUMERIC(10, 2) NOT NULL,
+      )
+    `);
+    console.log('Books table created successfully');
+  } catch (error) {
+    console.error('Error creating books table:', error);
+  }
+}
+
 
 // API endpoint for user login
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  console.log("USERNAME", username);
-  console.log("PASSWORD", password);
-
   try {
     const result = await pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
-    console.log(result)
     if (result.rows.length === 1) {
       // Successful login
-      res.json({ success: true, message: 'Login successful', user: { username } }); // Sending only username for security reasons
+      res.json({ success: true, message: 'Login successful', user: { username } });
     } else {
       // Incorrect username or password
       res.status(401).json({ success: false, message: 'Incorrect username or password' });
@@ -65,8 +78,6 @@ app.post('/login', async (req, res) => {
 // Endpoint for creating a user
 app.post('/create-user', async (req, res) => {
   const { username, password } = req.body;
-  console.log("USERNAME", username);
-  console.log("PASSWORD", password);
   try {
     // Check if the user already exists
     const existingUser = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
@@ -74,8 +85,8 @@ app.post('/create-user', async (req, res) => {
     if (existingUser.rows.length > 0) {
       res.status(409).json({ success: false, message: 'User already exists' });
     } else {
-      // Create the user
-      await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, password]);
+      // Create user
+      await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', [ username, password]);
       res.status(201).json({ success: true, message: 'User created successfully' });
     }
   } catch (error) {
@@ -83,6 +94,25 @@ app.post('/create-user', async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
+
+// API endpoint for adding a book to the user's cart
+app.post('/add-to-cart', async (req, res) => {
+  const { user_id, title, imageUrl, price } = req.body;
+
+  try {
+    // Insert the book into the user's cart
+    await pool.query(
+      'INSERT INTO books (user_id, title, imageUrl, price) VALUES ($1, $2, $3, $4)',
+      [user_id, title, imageUrl, price]
+    );
+
+    res.status(201).json({ success: true, message: 'Book added to cart successfully' });
+  } catch (error) {
+    console.error('Error adding book to cart:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
 
 app.listen(PORT, async () => {
   await createUsersTable();
