@@ -111,16 +111,16 @@ document.getElementById('login-form').addEventListener('submit', async (event) =
 // Get the form element
 document.getElementById('register-form').addEventListener('submit', async (event) => {
   event.preventDefault();
-  const email = document.querySelector('input[type=email]').value;
-  const password = document.querySelector('input[type=password]').value;
+  const email = document.getElementById('register-email').value;
+  const password = document.getElementById('register-password').value;
 
   try {
     const data = await auth(email, password,registerPath);
     console.log(data)
     if (data.success) {
-      console.log('User created successfully');
+    console.log('User created successfully');
     } else {
-      console.log('User creation failed:', data.message);
+    console.log('User creation failed:', data.message);
     }
   } catch (error) {
     console.error('Error:', error);
@@ -150,7 +150,7 @@ var swiper = new Swiper(".books-slider", {
 
 var swiper = new Swiper(".featured-slider", {
   spaceBetween: 10,
-  loop:false,
+  loop:true,
   centeredSlides: true,
   autoplay: {
     delay: 9500,
